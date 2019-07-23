@@ -1,0 +1,16 @@
+<RCC>
+    <qresource prefix="/resources">
+        <file alias="reload.png">resources/baseline_cached_white_18dp.png</file>
+        <file alias="ok.png">resources/baseline_check_circle_white_18dp.png</file>
+        <file alias="question.png">resources/baseline_contact_support_white_18dp.png</file>
+        <file alias="help.png">resources/baseline_help_white_18dp.png</file>
+        <file alias="wait.png">resources/baseline_hourglass_full_white_18dp.png</file>
+        <file alias="info.png">resources/baseline_info_white_18dp.png</file>
+        <file alias="error.png">resources/baseline_priority_high_white_18dp.png</file>
+        <file alias="warning.png">resources/baseline_report_problem_white_18dp.png</file>
+        <file alias="sd.png">resources/baseline_sd_card_white_18dp.png</file>
+        <file alias="bg.png">resources/bg.png</file>
+        <file alias="UID.binary">resources/UID.binary</file>
+    </qresource>
+    <qresource prefix="/"/>
+</RCC>
