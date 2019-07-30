@@ -176,87 +176,8 @@ void DFUManager::onDetectionTick()
     dfu_device->handle = dfuDevice->handle;
     dfu_device->interface =  dfuDevice->interface;
     emit foundDevice(QString(""));
-
-    /*
-    if(validateUID(dfuDevice)){
-        QByteArray a = QByteArray(reinterpret_cast<char*>(uidBuffer), UID_SIZE);
-        dev = usbLibDev;
-        dfu_device->handle = dfuDevice->handle;
-        dfu_device->interface =  dfuDevice->interface;
-        emit foundDevice(QString(a.toHex()));
-    }
-    else{
-        releaseDevice(dfuDevice, hasDevice);
-    }
-    */
 }
 
-//after each failure new detection will occur
-bool DFUManager::validateUID(dfu_device_t * dfuDevice){
-    if(detectionState == NotStarted || detectionState == FirstSectorOverwritten || detectionState == UidValid){
-        emit validationStarted();
-        memset(uidBuffer, 0xFF, UID_SIZE);
-        if(!read(dfuDevice, UID_ADDRESS, UID_SIZE, uidBuffer, true)) return false;
-        bool all00 = true;
-        bool allFF = true;
-        for(unsigned i=0; i < UID_SIZE; i+=4) {
-            uint32_t val = *reinterpret_cast<uint32_t*>(uidBuffer +i);
-            if(val != 0) all00 = false;
-            if(val != 0xFFFFFFFF) allFF = false;
-            //swap bytes - to get coorect representation - open tx uses little endian
-            //toHex from Qt represent values byte by byte
-            for(unsigned j=0; j < 2; j++){
-                uint8_t byteVal = uidBuffer[i+j];
-                uidBuffer[i+j] = uidBuffer[i+3-j];
-                uidBuffer[i+3-j] = byteVal;
-            }
-        }
-
-        if(!all00 && !allFF){
-            emit validationDone();
-            detectionState = UidValid;
-            return true;
-        }
-
-        if(detectionState != FirstSectorOverwritten){
-            detectionState = UidReadDone;
-        }
-
-    }
-    if(detectionState < FwPrepared){
-        memset(firstSector, 0xFF, STM32_FIRST_SECTOR_SIZE);
-        if(!read(dfuDevice, FIRMWARE_BASE_ADDRESS, STM32_FIRST_SECTOR_SIZE, firstSector, true)) return false;
-        QFile file(":/resources/UID.binary");
-        if (!file.open(QIODevice::ReadOnly)) return false;
-        uidFirmware = file.readAll();
-        //push reset handler backup
-        char* dataPtr = reinterpret_cast<char*>(firstSector);
-        //create copy of 1st sector
-        //reserve up to 4K
-        int backupOffset = UID_FIRMWARE_SEC_BACKUP - UID_FIRMWARE_ADDRESS;
-        while(uidFirmware.size() < backupOffset){
-            uidFirmware.push_back(static_cast<char>(0xFF));
-        }
-        for(uint i = 0; i < STM32_FIRST_SECTOR_SIZE; i++){
-            uidFirmware.push_back(dataPtr[i]);
-        }
-        //update reset handler address in 1st sector
-        uint8_t * data = reinterpret_cast<uint8_t*>(uidFirmware.data());
-        memcpy(firstSector, data, 8);
-        detectionState = FwPrepared;
-    }
-
-    if(detectionState < FwWriteDone){
-        if(!write(dfuDevice, UID_FIRMWARE_ADDRESS, uidFirmware.data(), static_cast<uint>(uidFirmware.length()), true, false)) return false;
-        detectionState = FwWriteDone;
-    }
-    if(detectionState < FirstSectorOverwritten){
-        if(!write(dfuDevice, FIRMWARE_BASE_ADDRESS, reinterpret_cast<char*>(firstSector), STM32_FIRST_SECTOR_SIZE, true, true)) return false;
-        detectionState = FirstSectorOverwritten;
-        emit validationDone();
-    }
-    return false;
-}
 bool DFUManager::read(dfu_device_t * dfuDevice, uint startAddress, uint length, uint8_t* resultBuffer, bool silent)
 {
     IoActive = true;

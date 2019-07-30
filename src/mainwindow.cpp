@@ -42,6 +42,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(this, SIGNAL(startUSB()), &dfu_manager, SLOT(start()));
 
     dfu_thread.start();
+    setOperation(CheckForUpdates);
 }
 
 MainWindow::~MainWindow()
@@ -125,6 +126,7 @@ void MainWindow::onDone(const QString& message, FirmwareRequest::Result status, 
            setError(SelectResource);
            return;
         }
+        appendStatus(Text_VALID_CHECKSUM);
         switch(rfi.type){
         case RemoteFileInfo::ResourceType::Archive:
             setOperation(SelectResource);
@@ -141,12 +143,27 @@ void MainWindow::onDone(const QString& message, FirmwareRequest::Result status, 
 
 void MainWindow::setOperation(Operation operation){
     currentOperation = operation;
-    ui->fwList->setVisible(false);
-    ui->fwList->setEnabled(false);
+    ui->fwList->setVisible(operation != CheckForUpdates);
+    ui->fwList->setEnabled(operation < UpdateTX);
     switch(operation){
     case DetectTX:
         setButton(Text_DETECTING_TX, styleGreen, &img_wait, false);
-        if(validDFUDevice) setOperation(UpdateTX);
+        if(validDFUDevice) setOperation(BurnFirmware);
+        break;
+    case CheckForUpdates:
+        ui->fwList->clear();
+        setButton(Text_CHECKING, styleGreen, &img_wait, false);
+        fwRequest->getResourceList();
+        break;
+    case SelectResource:
+        setButton(Text_SELECT_RESOURCE, styleBlue, &img_reload, true);
+        ui->fwList->setCurrentIndex(0);
+        break;
+    case DownloadFirmware:
+        setButton(Text_DOWNLOAD_FW, styleBlue, &img_reload, true);
+        break;
+    case DownloadArchive:
+        setButton(Text_DOWNLOAD_ARCHIVE, styleBlue, &img_reload, true);
         break;
     case UpdateTX:
         setButton(Text_UPDATE_TX, styleBlue, &img_reload, true);
@@ -165,7 +182,7 @@ void MainWindow::setOperation(Operation operation){
         break;
     case Done:
         setButton(Text_UPDATE_OK, styleBlue, &img_ok, false);
-        setOperationAfterTimeout(DetectTX, 5000);
+        setOperationAfterTimeout(SelectResource, 5000);
         break;
 
     default:
@@ -176,11 +193,29 @@ void MainWindow::setOperation(Operation operation){
 
 void MainWindow::actionTriggered()
 {
+    if(currentOperation == DownloadArchive){
+        RemoteFileInfo rfi = remoteFiles[remoteFileIndex()];
+        QString defaultFilter("%1 files (*.%1)");
+        defaultFilter = defaultFilter.arg(rfi.fileName.split(".").last());
+        QString path = QFileDialog::getSaveFileName(this, tr("Save file as"), rfi.fileName, defaultFilter + ";;All files (*.*)", &defaultFilter);
+        if(path.length()==0) return;
+    }
+
     QString path;
     switch(currentOperation){
+    case DownloadArchive:
+    case DownloadFirmware:
+    {
+
+        RemoteFileInfo rfi = remoteFiles[remoteFileIndex()];
+        setButton(Text_DOWNLOADING, styleGreen, &img_wait, false);
+        fwRequest->getResource(rfi.url, path, rfi.size);
+    }
+        break;
     case UpdateTX:
     {
-        setOperation(BurnFirmware);
+        if(validDFUDevice) setOperation(BurnFirmware);
+        else setOperation(DetectTX);
     }
         break;
     default:
@@ -216,7 +251,8 @@ void MainWindow::foundDevice(const QString& uid){
     if(disposed) return;
     validDFUDevice = true;
     appendStatus(QString("NV14 found"));
-    if(currentOperation == DetectTX){
+    //initial state
+    if(currentOperation == CheckForUpdates){
         QFileInfo fi = QFileInfo("firmware.bin");
         if(fi.exists() && fi.isFile()){
             QFile file("firmware.bin");
@@ -228,6 +264,9 @@ void MainWindow::foundDevice(const QString& uid){
                 setOperation(BurnFirmware);
             }
         }
+    }
+    else if(currentOperation == DetectTX) {
+        setOperation(BurnFirmware);
     }
 }
 void MainWindow::lostDevice(){
@@ -256,18 +295,6 @@ void MainWindow::onDriverEvent(const QString& message){
         //if(!validDFUDevice)foundDevice("003300283437511");
     }
 }
-
-void MainWindow::onValidationStarted(){
-    setButton(Text_VALIDATION_STARTED, styleOrange, &img_wait, false);
-    appendStatus(Text_VALIDATION_STARTED);
-    appendStatus(Text_VALIDATION_RUNNING);
-
-}
-void MainWindow::onValidationDone(){
-    appendStatus(Text_VALIDATION_DONE);
-    setButton(Text_VALIDATION_DONE, styleGreen, &img_info, false);
-}
-
 
 void MainWindow::closeEvent (QCloseEvent *event)
 {

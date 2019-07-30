@@ -60,7 +60,7 @@ void FirmwareRequest::managerFinished(QNetworkReply *reply){
             }
         }
         if(buffer != nullptr) buffer->clear();
-        getResource(url, targetFileName, false, knwonContentLength, true);
+        getResource(url, targetFileName, knwonContentLength, true);
         return;
     }
 
@@ -115,15 +115,15 @@ void FirmwareRequest::onFinished(){
     }
 }
 
-void FirmwareRequest::getResource(QUrl url, QString file, bool addUID, uint length, bool redirect){
+void FirmwareRequest::getResource(QUrl url, QString file, uint length, bool redirect){
     cleanup();
     QNetworkRequest request;
     qDebug() << url;
-    if(addUID) {
-        QUrlQuery query;
-        query.addQueryItem(queryUID, *uid);
-        url.setQuery(query.query());
-    }
+    //if(addUID) {
+    //    QUrlQuery query;
+    //    query.addQueryItem(queryUID, *uid);
+    //    url.setQuery(query.query());
+    //}
     knwonContentLength = length;
     buffer->clear();
     request.setUrl(url);
@@ -141,6 +141,6 @@ void FirmwareRequest::getResource(QUrl url, QString file, bool addUID, uint leng
 void FirmwareRequest::getResourceList(){
     targetFileName = "";
     emit progress(FirmwareRequest::TEXT_CHECKING_4_UPDATES, 10);
-    getResource(QUrl(repositoryURL), "", true, 0, true);
+    getResource(QUrl(repositoryURL), "", 0, true);
     emit progress(FirmwareRequest::TEXT_SENDING_REQUEST, 20);
 }

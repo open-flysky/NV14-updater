@@ -60,10 +60,8 @@ private:
     bool read(dfu_device_t * dfuDevice, uint startAddress, uint length, uint8_t* resultBuffer, bool silent);
     bool writeData(dfu_device_t * dfuDevice, uint address, char* buffer, uint length, bool silent, bool startApp);
     bool write(dfu_device_t * dfuDevice, uint address, char* buffer, uint length, bool silent, bool startApp);
-    bool validateUID(dfu_device_t * dfuDevice);
     const QString getWDIError(int errorCode);
 signals:
-    void validationStarted();
     void validationDone();
     void foundDevice(const QString& uid);
     void driverEvent(const QString& message);

@@ -22,7 +22,7 @@ public:
     ~FirmwareRequest();
     void setUID(const QString &uid);
     void getResourceList();
-    void getResource(QUrl url, QString file = QString(""), bool addUID = false, uint length=0, bool redirect = false);
+    void getResource(QUrl url, QString file = QString(""), uint length=0, bool redirect = false);
 
 signals:
     void progress(const QString& message, int progress);
@@ -57,8 +57,8 @@ private:
     const QString TEXT_PROGRESS_DOWNLOADING = QString("Downloading %1%.");
 
     const QString connectionError = QString("Conenction error");
-    const QString repositoryURL = QString("https://update.undergroundfpv.com/update.php");
-    const QVariant clinetAgent = QVariant("NV14-update-tool");
+    const QString repositoryURL = QString("https://open-flysky.github.io/update.php");
+    const QVariant clinetAgent = QVariant("FlySky-update-tool");
     const QString queryUID = QString("deviceUID");
 };
 

@@ -52,8 +52,6 @@ private slots:
     //DFU
     void foundDevice(const QString& uid);
     void lostDevice();
-    void onValidationStarted();
-    void onValidationDone();
     void onDriverEvent(const QString& message);
     void onDfuDone(const QString& message, bool success);
     void onProgress(const QString& message, int progress);
@@ -70,7 +68,7 @@ private:
     void fillFwList(QJsonDocument* result);
     QVariant GetFwInfo(QJsonValue& val);
 
-    Operation currentOperation = DetectTX;
+    Operation currentOperation = CheckForUpdates;
     Ui::MainWindow *ui;
     FirmwareRequest* fwRequest;
     DFUManager dfu_manager;
@@ -102,11 +100,12 @@ private:
     const QString UID_LIST_2 = "UID_LIST_2";
     const QString Text_VALIDATIN_CHECKSUM = "Validating checksum";
     const QString Text_INVALID_CHECKSUM = "Invalid checksum";
+    const QString Text_VALID_CHECKSUM = "Checksum OK";
     const QString Text_CHECK_UPDATES = "Check for updates";
     const QString Text_SELECT_RESOURCE = "Select resource";
     const QString Text_DOWNLOAD_ARCHIVE = "Download archive";
     const QString Text_DOWNLOAD_FW = "Download firmware";
-    const QString Text_UPDATE_TX = "Update TX";
+    const QString Text_UPDATE_TX = "Start Update";
     const QString Text_UPDATING_TX = "TX updating...";
     const QString Text_UPDATE_OK = "Update succeeded";
     const QString Text_DETECTING_TX = "TX detecting...";
