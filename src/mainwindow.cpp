@@ -6,6 +6,8 @@
 #include <QMessageBox>
 #include <QFileInfo>
 #include "aboutdialog.h"
+#include <QSaveFile>
+
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
@@ -193,20 +195,22 @@ void MainWindow::setOperation(Operation operation){
 
 void MainWindow::actionTriggered()
 {
+
     if(currentOperation == DownloadArchive){
         RemoteFileInfo rfi = remoteFiles[remoteFileIndex()];
         QString defaultFilter("%1 files (*.%1)");
         defaultFilter = defaultFilter.arg(rfi.fileName.split(".").last());
         QString path = QFileDialog::getSaveFileName(this, tr("Save file as"), rfi.fileName, defaultFilter + ";;All files (*.*)", &defaultFilter);
         if(path.length()==0) return;
+        setButton(Text_DOWNLOADING, styleGreen, &img_wait, false);
+        fwRequest->getResource(rfi.url, path, rfi.size);
+        return;
     }
 
-    QString path;
     switch(currentOperation){
-    case DownloadArchive:
     case DownloadFirmware:
     {
-
+        QString path;
         RemoteFileInfo rfi = remoteFiles[remoteFileIndex()];
         setButton(Text_DOWNLOADING, styleGreen, &img_wait, false);
         fwRequest->getResource(rfi.url, path, rfi.size);
