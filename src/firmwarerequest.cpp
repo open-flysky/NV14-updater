@@ -84,11 +84,12 @@ void FirmwareRequest::onReadyRead(){
     if(contentLength == 0 && knwonContentLength > 0) {
         contentLength = knwonContentLength;
     }
-    if(targetFileName.count() > 0) {
+    if(targetFileName.count() > 0 && targetFile == nullptr) {
         targetFile = new QFile(targetFileName);
         try {
              targetFile->open(QFile::OpenModeFlag::ReadWrite);
         } catch (...) {
+            targetFile = nullptr;
             emit done(TEXT_CAN_NOT_CREATE_FILE, Error, nullptr, 0);
             return;
         }
