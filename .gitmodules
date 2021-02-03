@@ -1,0 +1,4 @@
+[submodule "dfuutils"]
+	path = dfuutils
+	url = https://github.com/lalten/dfuutils
+	branch = patch-1
